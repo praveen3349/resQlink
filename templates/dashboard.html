@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RES Q LINK</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --danger: #f72585;
+      --warning: #f8961e;
+      --dark: #212529;
+      --light: #f8f9fa;
+      --gray: #6c757d;
+      --gray-light: #e9ecef;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7fa;
+      color: var(--dark);
+      overflow-x: hidden;
+    }
+    
+    /* Sidebar Styles */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100vh;
+      background: linear-gradient(135deg, #1a237e, #283593);
+      color: white;
+      padding: 20px 0;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+    
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-header h3 {
+      color: white;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+    
+    .sidebar-header h3 i {
+      margin-right: 10px;
+      color: var(--success);
+    }
+    
+    .sidebar-menu {
+      padding: 20px 0;
+    }
+    
+    .sidebar-menu ul {
+      list-style: none;
+    }
+    
+    .sidebar-menu li {
+      margin-bottom: 5px;
+    }
+    
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: all 0.3s;
+      border-left: 3px solid transparent;
+    }
+    
+    .sidebar-menu a:hover, .sidebar-menu a.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border-left: 3px solid var(--success);
+    }
+    
+    .sidebar-menu a i {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
+    }
+    
+    /* Main Content Styles */
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    /* Section anchors with offset for fixed header */
+    .section-anchor {
+      display: block;
+      position: relative;
+      top: -80px;
+      visibility: hidden;
+    }
+    
+    /* Header Styles */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      position: sticky;
+      top: 20px;
+      z-index: 100;
+    }
+    
+    .header-title h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+    }
+    
+    .user-profile {
+      display: flex;
+      align-items: center;
+    }
+    
+    .user-profile img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    
+    .user-profile span {
+      font-weight: 500;
+    }
+    
+    /* Card Styles */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .card-title {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--gray);
+    }
+    
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    
+    .card-icon.temperature {
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    }
+    
+    .card-icon.gas {
+      background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+    }
+    
+    .card-icon.sound {
+      background: linear-gradient(135deg, #84fab0, #8fd3f4);
+    }
+    
+    .card-value {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .card-footer {
+      display: flex;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--gray);
+    }
+    
+    .card-footer i {
+      margin-right: 5px;
+    }
+    
+    .card-footer.positive {
+      color: var(--success);
+    }
+    
+    .card-footer.negative {
+      color: var(--danger);
+    }
+    
+    .card-footer.warning {
+      color: var(--warning);
+    }
+    
+    /* Alert Status Styles */
+    .alert-status {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .alert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .alert-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .alert-time {
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+    
+    .alert-body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 0;
+    }
+    
+    .alert-indicator {
+      text-align: center;
+      padding: 20px 40px;
+      border-radius: 10px;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: white;
+    }
+    
+    .alert-indicator.live {
+      background: linear-gradient(135deg, #4cc9f0, #4895ef);
+      box-shadow: 0 5px 15px rgba(76, 201, 240, 0.4);
+    }
+    
+    .alert-indicator.deceased {
+      background: linear-gradient(135deg, #f72585, #b5179e);
+      box-shadow: 0 5px 15px rgba(247, 37, 133, 0.4);
+    }
+    
+    .alert-indicator.uncertain {
+      background: linear-gradient(135deg, #f8961e, #f3722c);
+      box-shadow: 0 5px 15px rgba(248, 150, 30, 0.4);
+    }
+    
+    .alert-description {
+      margin-top: 15px;
+      text-align: center;
+      color: var(--gray);
+    }
+    
+    /* Chart Styles */
+    .chart-container {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .chart-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .chart-actions {
+      display: flex;
+    }
+    
+    .chart-btn {
+      background: var(--gray-light);
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      margin-left: 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+    }
+    
+    .chart-btn:hover {
+      background: var(--gray);
+      color: white;
+    }
+    
+    .chart-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .chart-wrapper {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
+    
+    /* Map Styles */
+    .map-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    
+    #map {
+      height: 400px;
+      width: 100%;
+      background: #222;
+    }
+    
+    .map-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .map-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    /* Logs Table Styles */
+    .logs-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+    }
+    
+    .logs-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .logs-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .logs-actions {
+      display: flex;
+    }
+    
+    .logs-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      margin-left: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+    
+    .logs-btn:hover {
+      background: var(--secondary);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-light);
+    }
+    
+    th {
+      font-weight: 500;
+      color: var(--gray);
+      background: var(--gray-light);
+    }
+    
+    tr:hover {
+      background: rgba(67, 97, 238, 0.05);
+    }
+    
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    
+    .status-badge.live {
+      background: rgba(76, 201, 240, 0.1);
+      color: #4895ef;
+    }
+    
+    .status-badge.deceased {
+      background: rgba(247, 37, 133, 0.1);
+      color: #f72585;
+    }
+    
+    .status-badge.uncertain {
+      background: rgba(248, 150, 30, 0.1);
+      color: #f8961e;
+    }
+    
+    /* About Section Styles */
+    .about-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+    
+    .about-header {
+      margin-bottom: 20px;
+    }
+    
+    .about-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+    
+    .about-subtitle {
+      font-size: 1rem;
+      color: var(--gray);
+    }
+    
+    .about-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+    
+    .about-section {
+      margin-bottom: 20px;
+    }
+    
+    .about-section h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--secondary);
+    }
+    
+    .about-section p {
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+    
+    .about-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    
+    .feature-card {
+      background: var(--light);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature-icon {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+    
+    .feature-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    
+    .feature-desc {
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+    
+    .drone-integration {
+      background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(76, 201, 240, 0.1));
+      border-radius: 10px;
+      padding: 25px;
+      margin-top: 30px;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .drone-integration h3 {
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+    }
+    
+    .drone-integration h3 i {
+      margin-right: 10px;
+    }
+    
+    /* Control Buttons */
+    .controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    
+    .control-btn {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: all 0.3s;
+    }
+    
+    .control-btn.start {
+      background: var(--success);
+      color: white;
+    }
+    
+    .control-btn.stop {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .control-btn.reset {
+      background: var(--warning);
+      color: white;
+    }
+    
+    .control-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 992px) {
+      .sidebar {
+        width: 70px;
+        overflow: hidden;
+      }
+      
+      .sidebar-header h3 span, .sidebar-menu a span {
+        display: none;
+      }
+      
+      .sidebar-menu a {
+        justify-content: center;
+        padding: 12px 0;
+      }
+      
+      .sidebar-menu a i {
+        margin-right: 0;
+        font-size: 1.2rem;
+      }
+      
+      .main-content {
+        margin-left: 70px;
+      }
+      
+      .about-content {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+      
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .header-actions {
+        margin-top: 10px;
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .about-features {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Smooth scroll behavior */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* Custom marker styling */
+    .location-marker {
+      background-color: #4285F4;
+      border: 2px solid white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      animation: pulse 2s infinite;
+    }
+    
+    /* Pulse animation for marker */
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
+    }
+    
+    /* Custom popup styling */
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(5px);
+    }
+    
+    .leaflet-popup-content {
+      margin: 10px;
+      font-size: 14px;
+      color: #333;
+    }
+    
+    /* Control panel styling */
+    .info-panel {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px 15px;
+      border-radius: 8px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+      font-size: 14px;
+    }
+    
+    /* 3D effect for map tiles */
+    .leaflet-tile {
+      filter: brightness(1.1) contrast(1.1) saturate(1.3);
+    }
+    
+    /* Loading animation */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Notification toast */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      background: var(--primary);
+      color: white;
+      border-radius: 5px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      transform: translateX(200%);
+      transition: transform 0.3s ease;
+      z-index: 1100;
+    }
+    
+    .toast.show {
+      transform: translateX(0);
+    }
+    
+    .toast.success {
+      background: var(--success);
+    }
+    
+    .toast.error {
+      background: var(--danger);
+    }
+    
+    .toast.warning {
+      background: var(--warning);
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h3><i class="fas fa-heartbeat"></i> <span> RES Q LINK </span></h3>
+    </div>
+    <div class="sidebar-menu">
+      <ul>
+        <li><a href="#dashboard" class="active"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
+        <li><a href="#monitoring"><i class="fas fa-chart-line"></i> <span>Live Monitoring</span></a></li>
+        <li><a href="#status"><i class="fas fa-exclamation-triangle"></i> <span>Detection Status</span></a></li>
+        <li><a href="#history"><i class="fas fa-history"></i> <span>Logs & History</span></a></li>
+        <li><a href="#map-section"><i class="fas fa-map-marked-alt"></i> <span>Map View</span></a></li>
+        <li><a href="#about"><i class="fas fa-info-circle"></i> <span>About System</span></a></li>
+      </ul>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Dashboard Section -->
+    <div id="dashboard" class="section-anchor"></div>
+    
+    <!-- Header -->
+    <div class="header">
+      <div class="header-title">
+        <h1>CSSR Detection System</h1>
+      </div>
+      <div class="header-actions">
+        <div class="user-profile">
+          <img src="https://ui-avatars.com/api/?name=Admin&background=4361ee&color=fff" alt="User">
+          <span>Admin</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Cards Section -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Temperature</div>
+          <div class="card-icon temperature">
+            <i class="fas fa-thermometer-half"></i>
+          </div>
+        </div>
+        <div class="card-value" id="temp-value">{{ sensor_data.temperature }}°C</div>
+        <div class="card-footer 
+          {% if sensor_data.temperature < 33 %}negative
+          {% elif sensor_data.temperature < 34 %}warning
+          {% else %}positive{% endif %}">
+          <i class="fas 
+            {% if sensor_data.temperature < 33 %}fa-exclamation-triangle
+            {% elif sensor_data.temperature < 34 %}fa-exclamation-circle
+            {% else %}fa-check{% endif %}"></i> 
+          <span>
+            {% if sensor_data.temperature < 33 %}Critical
+            {% elif sensor_data.temperature < 34 %}Warning
+            {% else %}Normal{% endif %}
+          </span>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Gas Level</div>
+          <div class="card-icon gas">
+            <i class="fas fa-wind"></i>
+          </div>
+        </div>
+        <div class="card-value" id="gas-value">{{ sensor_data.gas }} ppm</div>
+        <div class="card-footer 
+          {% if sensor_data.gas > 250 %}negative
+          {% elif sensor_data.gas > 200 %}warning
+          {% else %}positive{% endif %}">
+          <i class="fas 
+            {% if sensor_data.gas > 250 %}fa-exclamation-triangle
+            {% elif sensor_data.gas > 200 %}fa-exclamation-circle
+            {% else %}fa-check{% endif %}"></i> 
+          <span>
+            {% if sensor_data.gas > 250 %}Critical
+            {% elif sensor_data.gas > 200 %}Warning
+            {% else %}Safe{% endif %}
+          </span>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Sound Level</div>
+          <div class="card-icon sound">
+            <i class="fas fa-volume-up"></i>
+          </div>
+        </div>
+        <div class="card-value" id="sound-value">{{ sensor_data.sound }} dB</div>
+        <div class="card-footer 
+          {% if sensor_data.sound < 30 %}negative
+          {% elif sensor_data.sound < 35 %}warning
+          {% else %}positive{% endif %}">
+          <i class="fas 
+            {% if sensor_data.sound < 30 %}fa-exclamation-triangle
+            {% elif sensor_data.sound < 35 %}fa-exclamation-circle
+            {% else %}fa-check{% endif %}"></i> 
+          <span>
+            {% if sensor_data.sound < 30 %}Critical
+            {% elif sensor_data.sound < 35 %}Warning
+            {% else %}Normal{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Monitoring Section -->
+    <div id="monitoring" class="section-anchor"></div>
+    <div class="chart-container">
+      <div class="chart-header">
+        <div class="chart-title">Sensor Data Trends</div>
+        <div class="chart-actions">
+          <button class="chart-btn active">Live</button>
+          <button class="chart-btn">1h</button>
+          <button class="chart-btn">6h</button>
+          <button class="chart-btn">24h</button>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="sensorChart"></canvas>
+      </div>
+    </div>
+    
+    <!-- Status Section -->
+    <div id="status" class="section-anchor"></div>
+    <div class="alert-status">
+      <div class="alert-header">
+        <div class="alert-title">Current Detection Status</div>
+        <div class="alert-time">Last updated: <span id="last-updated">{{ sensor_data.last_updated }}</span></div>
+      </div>
+      <div class="alert-body">
+        <div class="alert-indicator {{ sensor_data.status }}">
+          <i class="fas 
+            {% if sensor_data.status == 'live' %}fa-heartbeat
+            {% elif sensor_data.status == 'deceased' %}fa-skull
+            {% else %}fa-question-circle{% endif %}"></i> 
+          {{ sensor_data.status|upper }} DETECTED
+        </div>
+      </div>
+      <div class="alert-description">
+        {% if sensor_data.status == 'live' %}
+          System is currently detecting signs of life from the subject.
+        {% elif sensor_data.status == 'deceased' %}
+          System detects no signs of life from the subject.
+        {% else %}
+          System is uncertain about the subject's status.
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Map Section -->
+    <div id="map-section" class="section-anchor"></div>
+    <div class="map-container">
+      <div class="map-header">
+        <div class="map-title">Detection Location</div>
+      </div>
+      <div id="map"></div>
+    </div>
+    
+    <!-- History Section -->
+    <div id="history" class="section-anchor"></div>
+    <div class="logs-container">
+      <div class="logs-header">
+        <div class="logs-title">Detection History</div>
+        <div class="logs-actions">
+          <button class="logs-btn" id="export-btn"><i class="fas fa-download"></i> Export</button>
+          <button class="logs-btn" id="refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table id="history-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Temperature</th>
+              <th>Gas Level</th>
+              <th>Sound Level</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in history %}
+            <tr>
+              <td>{{ entry.timestamp }}</td>
+              <td>{{ entry.temperature }}°C</td>
+              <td>{{ entry.gas }} ppm</td>
+              <td>{{ entry.sound }} dB</td>
+              <td><span class="status-badge {{ entry.status }}">{{ entry.status|upper }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- About Section -->
+    <div id="about" class="section-anchor"></div>
+    <div class="about-container">
+      <div class="about-header">
+        <h2 class="about-title">About RES Q LINK - CSSR Detection System</h2>
+        <p class="about-subtitle">Advanced technology for detecting signs of life in disaster scenarios</p>
+      </div>
+      
+      <div class="about-content">
+        <div class="about-section">
+          <h3>What is RES Q LINK?</h3>
+          <p>RES Q LINK (Search And Rescue Victim Assistance) is an advanced CSSR (Collapsed Structure Search and Rescue) detection system designed to locate and assess the status of victims trapped in collapsed buildings or disaster zones.</p>
+          <p>Our hybrid system combines multiple sensor modalities to accurately detect signs of life, even in challenging environments with limited access or visibility.</p>
+          
+          <h3>How It Works</h3>
+          <p>The system analyzes three key physiological indicators:</p>
+          <ul style="margin-left: 20px; margin-bottom: 15px;">
+            <li>Body temperature variations</li>
+            <li>Respiratory gas patterns</li>
+            <li>Acoustic signals (heartbeat, breathing, tapping)</li>
+          </ul>
+          <p>Advanced machine learning algorithms process the sensor data to determine whether a subject is alive, deceased, or if the status is uncertain.</p>
+        </div>
+        
+        <div class="about-section">
+          <h3>Technology Overview</h3>
+          <p>The RES Q LINK system integrates:</p>
+          <ul style="margin-left: 20px; margin-bottom: 15px;">
+            <li>High-sensitivity thermal sensors</li>
+            <li>Precision gas analyzers</li>
+            <li>Advanced acoustic detection arrays</li>
+            <li>Real-time data processing</li>
+            <li>Geospatial mapping</li>
+          </ul>
+          
+          <div class="drone-integration">
+            <h3><i class="fas fa-drone-alt"></i> Future Drone Integration</h3>
+            <p>We are currently developing drone-mounted versions of RES Q LINK to enable rapid deployment in large-scale disaster scenarios. These drones will:</p>
+            <ul style="margin-left: 20px;">
+              <li>Autonomously scan disaster areas for signs of life</li>
+              <li>Pinpoint victim locations with centimeter accuracy</li>
+              <li>Provide real-time data to rescue teams</li>
+              <li>Operate in hazardous environments unsafe for humans</li>
+            </ul>
+            <p>The drone system will significantly reduce search times and improve survival rates in earthquake, avalanche, and building collapse scenarios.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="about-features">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <h4 class="feature-title">Rapid Deployment</h4>
+          <p class="feature-desc">Ready for use within minutes of arriving at a disaster site</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h4 class="feature-title">Hazard Resistant</h4>
+          <p class="feature-desc">Operates in extreme conditions and hazardous environments</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h4 class="feature-title">AI-Powered</h4>
+          <p class="feature-desc">Advanced algorithms reduce false positives and negatives</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h4 class="feature-title">Team Coordination</h4>
+          <p class="feature-desc">Real-time data sharing with all rescue team members</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Control Buttons -->
+    <div class="controls">
+      <button class="control-btn start" id="start-btn"><i class="fas fa-play"></i> Start Monitoring</button>
+      <button class="control-btn stop" id="stop-btn"><i class="fas fa-stop"></i> Stop Monitoring</button>
+      <button class="control-btn reset" id="reset-btn"><i class="fas fa-redo"></i> Reset Alerts</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <!-- Leaflet Elevation for 3D terrain effect -->
+  <script src="https://unpkg.com/@raruto/leaflet-elevation@1.0.0/dist/leaflet-elevation.js"></script>
+  
+  <script>
+    // Initialize Chart
+    const ctx = document.getElementById('sensorChart').getContext('2d');
+    let sensorChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: { y: { beginAtZero: false } },
+        interaction: { mode: 'nearest', axis: 'x', intersect: false }
+      }
+    });
+
+    // Function to fetch and update chart data
+    function updateChartData() {
+      fetch('/api/data')
+        .then(response => response.json())
+        .then(data => {
+          sensorChart.data = data;
+          sensorChart.update();
+          
+          // Update sensor values
+          document.getElementById('temp-value').textContent = data.sensor_data.temperature + '°C';
+          document.getElementById('gas-value').textContent = data.sensor_data.gas + ' ppm';
+          document.getElementById('sound-value').textContent = data.sensor_data.sound + ' dB';
+          document.getElementById('last-updated').textContent = data.sensor_data.last_updated;
+          
+          // Update status indicator
+          const statusIndicator = document.querySelector('.alert-indicator');
+          statusIndicator.className = `alert-indicator ${data.sensor_data.status}`;
+          
+          let icon, text, description;
+          switch(data.sensor_data.status) {
+            case 'live':
+              icon = 'fa-heartbeat';
+              text = 'LIVE DETECTED';
+              description = 'System is currently detecting signs of life from the subject.';
+              break;
+            case 'deceased':
+              icon = 'fa-skull';
+              text = 'DECEASED DETECTED';
+              description = 'System detects no signs of life from the subject.';
+              break;
+            case 'uncertain':
+              icon = 'fa-question-circle';
+              text = 'UNCERTAIN STATUS';
+              description = 'System is uncertain about the subject\'s status.';
+              break;
+          }
+          
+          statusIndicator.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
+          document.querySelector('.alert-description').textContent = description;
+          
+          // Update card footers
+          updateCardFooter('temp', data.sensor_data.temperature, 33, 34);
+          updateCardFooter('gas', data.sensor_data.gas, 250, 200, false);
+          updateCardFooter('sound', data.sensor_data.sound, 30, 35);
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    }
+
+    // Helper function to update card footer status
+    function updateCardFooter(type, value, criticalThreshold, warningThreshold, lowerIsWorse = true) {
+      const card = document.querySelector(`#${type}-value`).closest('.card');
+      const footer = card.querySelector('.card-footer');
+      const icon = card.querySelector('.card-footer i');
+      const text = card.querySelector('.card-footer span');
+      
+      let status, iconClass, statusText;
+      
+      if (lowerIsWorse) {
+        if (value < criticalThreshold) {
+          status = 'negative';
+          iconClass = 'fa-exclamation-triangle';
+          statusText = 'Critical';
+        } else if (value < warningThreshold) {
+          status = 'warning';
+          iconClass = 'fa-exclamation-circle';
+          statusText = 'Warning';
+        } else {
+          status = 'positive';
+          iconClass = 'fa-check';
+          statusText = type === 'gas' ? 'Safe' : 'Normal';
+        }
+      } else {
+        if (value > criticalThreshold) {
+          status = 'negative';
+          iconClass = 'fa-exclamation-triangle';
+          statusText = 'Critical';
+        } else if (value > warningThreshold) {
+          status = 'warning';
+          iconClass = 'fa-exclamation-circle';
+          statusText = 'Warning';
+        } else {
+          status = 'positive';
+          iconClass = 'fa-check';
+          statusText = type === 'gas' ? 'Safe' : 'Normal';
+        }
+      }
+      
+      footer.className = `card-footer ${status}`;
+      icon.className = `fas ${iconClass}`;
+      text.textContent = statusText;
+    }
+
+    // Function to show toast notification
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast show ${type}`;
+      
+      setTimeout(() => {
+        toast.className = 'toast';
+      }, 3000);
+    }
+
+    // Initialize Map
+    var map = L.map('map', {
+      preferCanvas: true,
+      zoomControl: false
+    }).setView([51.505, -0.09], 13);
+
+    // Add zoom control with better position
+    L.control.zoom({
+      position: 'topright'
+    }).addTo(map);
+
+    // Add a more detailed OSM tile layer with 3D-like appearance
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      detectRetina: true
+    }).addTo(map);
+      // Add terrain layer for 3D effect (using OpenTopoMap)
+    L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      maxZoom: 17,
+      opacity: 0.7
+    }).addTo(map);
+    // Create a custom icon for the location marker
+    var locationIcon = L.divIcon({
+      className: 'location-marker',
+      iconSize: [20, 20]
+    });
+
+    // Variables to track location marker and accuracy circle
+    var locationMarker, accuracyCircle;
+
+    // Function to handle location found
+    function onLocationFound(e) {
+      var radius = e.accuracy / 2;
+      
+      // Update or create the location marker
+      if (locationMarker) {
+        locationMarker.setLatLng(e.latlng);
+      } else {
+        locationMarker = L.marker(e.latlng, {
+          icon: locationIcon,
+          zIndexOffset: 1000
+        }).addTo(map)
+          .bindPopup("You are here<br>Accuracy: " + Math.round(radius*2) + " meters")
+          .openPopup();
+      }
+      
+      // Update or create the accuracy circle
+      if (accuracyCircle) {
+        accuracyCircle.setLatLng(e.latlng).setRadius(radius);
+      } else {
+        accuracyCircle = L.circle(e.latlng, radius, {
+          color: '#4285F4',
+          fillColor: '#4285F4',
+          fillOpacity: 0.2,
+          weight: 1
+        }).addTo(map);
+      }
+      
+      // Set the view to the user's location with a reasonable zoom level
+      if (!map.getBounds().contains(e.latlng)) {
+        map.setView(e.latlng, 15);
+      }
+      
+      // Add detection zone (example)
+      if (!window.detectionZone) {
+        window.detectionZone = L.circle(e.latlng, {
+          color: '#f72585',
+          fillColor: '#f72585',
+          fillOpacity: 0.2,
+          radius: 100
+        }).addTo(map).bindPopup("CSSR Detection Zone");
+      } else {
+        window.detectionZone.setLatLng(e.latlng);
+      }
+    }
+
+    // Function to handle location error
+    function onLocationError(e) {
+      document.getElementById('location-info').textContent = 'Location access denied';
+      document.getElementById('coordinates').textContent = 'Lat/Lng: -';
+      document.getElementById('accuracy').textContent = 'Accuracy: - meters';
+      
+      // Show a more user-friendly error message
+      L.popup()
+        .setLatLng(map.getCenter())
+        .setContent("<b>Location Error</b><br>" + e.message)
+        .openOn(map);
+    }
+
+    // Set up location event handlers
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', onLocationError);
+
+    // Try to locate the user
+    map.locate({
+      setView: false, // We'll handle the view ourselves
+      maxZoom: 16,
+      watch: true,
+      enableHighAccuracy: true,
+      timeout: 10000
+    });
+
+    // Add scale control
+    L.control.scale({position: 'bottomleft'}).addTo(map);
+
+    // Add attribution control with better position
+    L.control.attribution({
+      position: 'bottomright'
+    }).addTo(map);
+    
+    // Control buttons functionality
+    document.getElementById('start-btn').addEventListener('click', function() {
+      const btn = this;
+      btn.innerHTML = '<div class="loading"></div> Starting...';
+      btn.disabled = true;
+      
+      fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start' })
+      })
+      .then(response => response.json())
+      .then(data => {
+        showToast(data.message, 'success');
+        btn.innerHTML = '<i class="fas fa-play"></i> Start Monitoring';
+        btn.disabled = false;
+      })
+      .catch(error => {
+        showToast('Error starting monitoring', 'error');
+        console.error('Error:', error);
+        btn.innerHTML = '<i class="fas fa-play"></i> Start Monitoring';
+        btn.disabled = false;
+      });
+    });
+    
+    document.getElementById('stop-btn').addEventListener('click', function() {
+      const btn = this;
+      btn.innerHTML = '<div class="loading"></div> Stopping...';
+      btn.disabled = true;
+      
+      fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stop' })
+      })
+      .then(response => response.json())
+      .then(data => {
+        showToast(data.message, 'warning');
+        btn.innerHTML = '<i class="fas fa-stop"></i> Stop Monitoring';
+        btn.disabled = false;
+      })
+      .catch(error => {
+        showToast('Error stopping monitoring', 'error');
+        console.error('Error:', error);
+        btn.innerHTML = '<i class="fas fa-stop"></i> Stop Monitoring';
+        btn.disabled = false;
+      });
+    });
+    
+    document.getElementById('reset-btn').addEventListener('click', function() {
+      const btn = this;
+      btn.innerHTML = '<div class="loading"></div> Resetting...';
+      btn.disabled = true;
+      
+      fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset' })
+      })
+      .then(response => response.json())
+      .then(data => {
+        showToast(data.message, 'success');
+        btn.innerHTML = '<i class="fas fa-redo"></i> Reset Alerts';
+        btn.disabled = false;
+      })
+      .catch(error => {
+        showToast('Error resetting alerts', 'error');
+        console.error('Error:', error);
+        btn.innerHTML = '<i class="fas fa-redo"></i> Reset Alerts';
+        btn.disabled = false;
+      });
+    });
+    
+    // Export button functionality
+    document.getElementById('export-btn').addEventListener('click', function() {
+      fetch('/api/history')
+        .then(response => response.json())
+        .then(data => {
+          // Convert to CSV
+          let csv = 'Timestamp,Temperature,Gas Level,Sound Level,Status\n';
+          data.history.forEach(entry => {
+            csv += `"${entry.timestamp}",${entry.temperature},${entry.gas},${entry.sound},${entry.status}\n`;
+          });
+          
+          // Download CSV
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.setAttribute('hidden', '');
+          a.setAttribute('href', url);
+          a.setAttribute('download', `cssr_history_${new Date().toISOString().slice(0,10)}.csv`);
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          
+          showToast('History exported successfully', 'success');
+        })
+        .catch(error => {
+          showToast('Error exporting history', 'error');
+          console.error('Error:', error);
+        });
+    });
+    
+    // Refresh button functionality
+    document.getElementById('refresh-btn').addEventListener('click', function() {
+      const btn = this;
+      btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Refreshing...';
+      btn.disabled = true;
+      
+      fetch('/api/history')
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.querySelector('#history-table tbody');
+          tableBody.innerHTML = '';
+          
+          data.history.slice(0, 10).forEach(entry => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${entry.timestamp}</td>
+              <td>${entry.temperature}°C</td>
+              <td>${entry.gas} ppm</td>
+              <td>${entry.sound} dB</td>
+              <td><span class="status-badge ${entry.status}">${entry.status.toUpperCase()}</span></td>
+            `;
+            tableBody.appendChild(row);
+          });
+          
+          btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+          btn.disabled = false;
+          showToast('History refreshed', 'success');
+        })
+        .catch(error => {
+          showToast('Error refreshing history', 'error');
+          console.error('Error:', error);
+          btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+          btn.disabled = false;
+        });
+    });
+    
+    // Update data every 5 seconds
+    setInterval(updateChartData, 5000);
+    
+    // Initial data load
+    updateChartData();
+    
+    // Smooth scrolling for sidebar navigation
+    document.querySelectorAll('.sidebar-menu a').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Remove active class from all menu items
+        document.querySelectorAll('.sidebar-menu a').forEach(item => {
+          item.classList.remove('active');
+        });
+        
+        // Add active class to clicked item
+        this.classList.add('active');
+        
+        // Scroll to the target section
+        const targetId = this.getAttribute('href');
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 100, // Adjust for header height
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+    
+    // Highlight current section in sidebar while scrolling
+    window.addEventListener('scroll', function() {
+      const sections = document.querySelectorAll('.section-anchor');
+      let currentSection = '';
+      
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (pageYOffset >= sectionTop - 150) {
+          currentSection = section.getAttribute('id');
+        }
+      });
+      
+      document.querySelectorAll('.sidebar-menu a').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === `#${currentSection}`) {
+          item.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
